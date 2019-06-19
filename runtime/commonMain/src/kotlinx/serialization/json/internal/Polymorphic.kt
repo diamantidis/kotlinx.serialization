@@ -5,16 +5,17 @@
 package kotlinx.serialization.json.internal
 
 import kotlinx.serialization.*
+import kotlinx.serialization.internal.AbstractPolymorphicSerializer
 import kotlinx.serialization.json.*
 
+@Suppress("UNCHECKED_CAST")
 internal inline fun <T> JsonOutput.encodePolymorphically(serializer: SerializationStrategy<T>, value: T, ifPolymorphic: () -> Unit) {
-    if (serializer !is PolymorphicSerializer<*> || json.configuration.useArrayPolymorphism) {
+    if (serializer !is AbstractPolymorphicSerializer<*> || json.configuration.useArrayPolymorphism) {
         serializer.serialize(this, value)
         return
     }
-
-    @Suppress("UNCHECKED_CAST")
-    val actualSerializer = serializer.findPolymorphicSerializer(this, value as Any) as KSerializer<Any>
+    serializer as AbstractPolymorphicSerializer<T> // PolymorphicSerializer <*> projects 2nd argument of findPolymorphic... to Nothing, so we need an additional cast
+    val actualSerializer = serializer.findPolymorphicSerializer(this, value) as KSerializer<T>
     val kind = actualSerializer.descriptor.kind
     checkKind(kind)
 
@@ -29,7 +30,7 @@ fun checkKind(kind: SerialKind) {
 }
 
 internal fun <T> JsonInput.decodeSerializableValuePolymorphic(deserializer: DeserializationStrategy<T>): T {
-    if (deserializer !is PolymorphicSerializer<*> || json.configuration.useArrayPolymorphism) {
+    if (deserializer !is AbstractPolymorphicSerializer<*> || json.configuration.useArrayPolymorphism) {
         return deserializer.deserialize(this)
     }
 

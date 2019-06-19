@@ -7,7 +7,6 @@ package kotlinx.serialization
 import kotlinx.serialization.CompositeDecoder.Companion.READ_ALL
 import kotlinx.serialization.modules.EmptyModule
 import kotlinx.serialization.modules.SerialModule
-import kotlinx.serialization.internal.EnumDescriptor
 
 @SerialInfo
 @Target(AnnotationTarget.PROPERTY)
@@ -58,7 +57,7 @@ abstract class TaggedEncoder<Tag : Any?> : Encoder, CompositeEncoder {
 
     open fun encodeTaggedEnum(
         tag: Tag,
-        enumDescription: EnumDescriptor,
+        enumDescription: SerialDescriptor,
         ordinal: Int
     ) = encodeTaggedValue(tag, ordinal)
 
@@ -91,7 +90,7 @@ abstract class TaggedEncoder<Tag : Any?> : Encoder, CompositeEncoder {
     final override fun encodeString(value: String) = encodeTaggedString(popTag(), value)
 
     final override fun encodeEnum(
-        enumDescription: EnumDescriptor,
+        enumDescription: SerialDescriptor,
         ordinal: Int
     ) = encodeTaggedEnum(popTag(), enumDescription, ordinal)
 
@@ -200,7 +199,7 @@ abstract class TaggedDecoder<Tag : Any?> : Decoder, CompositeDecoder {
     open fun decodeTaggedDouble(tag: Tag): Double = decodeTaggedValue(tag) as Double
     open fun decodeTaggedChar(tag: Tag): Char = decodeTaggedValue(tag) as Char
     open fun decodeTaggedString(tag: Tag): String = decodeTaggedValue(tag) as String
-    open fun decodeTaggedEnum(tag: Tag, enumDescription: EnumDescriptor): Int = decodeTaggedValue(tag) as Int
+    open fun decodeTaggedEnum(tag: Tag, enumDescription: SerialDescriptor): Int = decodeTaggedValue(tag) as Int
 
 
     // ---- Implementation of low-level API ----
@@ -219,7 +218,7 @@ abstract class TaggedDecoder<Tag : Any?> : Decoder, CompositeDecoder {
     final override fun decodeChar(): Char = decodeTaggedChar(popTag())
     final override fun decodeString(): String = decodeTaggedString(popTag())
 
-    final override fun decodeEnum(enumDescription: EnumDescriptor): Int = decodeTaggedEnum(popTag(), enumDescription)
+    final override fun decodeEnum(enumDescription: SerialDescriptor): Int = decodeTaggedEnum(popTag(), enumDescription)
 
     override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeDecoder {
         return this
