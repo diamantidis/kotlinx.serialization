@@ -78,33 +78,6 @@ public object PolymorphicClassDescriptor : SerialClassDescImpl("kotlin.Any") {
  * @see SerializersModule
  * @see SerializersModuleBuilder.polymorphic
  */
-public class PolymorphicSerializer<T : Any>(public val baseClass: KClass<T>) : AbstractPolymorphicSerializer<T>() {
+public class PolymorphicSerializer<T : Any>(override val baseClass: KClass<T>) : AbstractPolymorphicSerializer<T>() {
     public override val descriptor: SerialDescriptor = PolymorphicClassDescriptor
-
-    /**
-     * Lookups a polymorphic serializer by given [klassName] in the context of [decoder] by the current [base class][baseClass].
-     * Throws [SerializationException] if serializer is not found.
-     */
-    public override fun findPolymorphicSerializer(
-        decoder: CompositeDecoder,
-        klassName: String
-    ): KSerializer<out T> = decoder.context.getPolymorphic(baseClass, klassName)
-            ?: throwSubtypeNotRegistered(klassName, baseClass)
-
-    /**
-     * Lookups a polymorphic serializer by given [value] in the context of [encoder] by the current [base class][baseClass].
-     * Throws [SerializationException] if serializer is not found.
-     */
-    @Suppress("UNCHECKED_CAST")
-    public override fun findPolymorphicSerializer(
-        encoder: Encoder,
-        value: T
-    ): KSerializer<out T> =
-        encoder.context.getPolymorphic(baseClass, value) ?: throwSubtypeNotRegistered(value::class, baseClass)
 }
-
-
-private fun throwSubtypeNotRegistered(subClassName: String, baseClass: KClass<*>): Nothing =
-    throw SerializationException("$subClassName is not registered for polymorphic serialization in the scope of $baseClass")
-
-private fun throwSubtypeNotRegistered(subClass: KClass<*>, baseClass: KClass<*>): Nothing = throwSubtypeNotRegistered(subClass.toString(), baseClass)

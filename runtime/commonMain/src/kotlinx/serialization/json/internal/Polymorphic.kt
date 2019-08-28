@@ -14,8 +14,8 @@ internal inline fun <T> JsonOutput.encodePolymorphically(serializer: Serializati
         serializer.serialize(this, value)
         return
     }
-    serializer as AbstractPolymorphicSerializer<T> // PolymorphicSerializer <*> projects 2nd argument of findPolymorphic... to Nothing, so we need an additional cast
-    val actualSerializer = serializer.findPolymorphicSerializer(this, value) as KSerializer<T>
+    serializer as AbstractPolymorphicSerializer<Any> // PolymorphicSerializer <*> projects 2nd argument of findPolymorphic... to Nothing, so we need an additional cast
+    val actualSerializer = serializer.findPolymorphicSerializer(this, value as Any) as KSerializer<Any>
     val kind = actualSerializer.descriptor.kind
     checkKind(kind)
 

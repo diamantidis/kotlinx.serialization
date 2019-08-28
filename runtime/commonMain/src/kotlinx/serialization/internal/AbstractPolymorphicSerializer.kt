@@ -5,8 +5,11 @@
 package kotlinx.serialization.internal
 
 import kotlinx.serialization.*
+import kotlin.reflect.KClass
 
-abstract class AbstractPolymorphicSerializer<T> internal constructor() : KSerializer<T> {
+abstract class AbstractPolymorphicSerializer<T : Any> internal constructor() : KSerializer<T> {
+
+    public abstract val baseClass: KClass<T>
 
     @Suppress("UNCHECKED_CAST")
     public final override fun serialize(encoder: Encoder, obj: T) {
@@ -53,13 +56,32 @@ abstract class AbstractPolymorphicSerializer<T> internal constructor() : KSerial
         return requireNotNull(value) { "Polymorphic value have not been read for class $klassName" } as T
     }
 
-    public abstract fun findPolymorphicSerializer(
+    /**
+     * Lookups a polymorphic serializer by given [klassName] in the context of [decoder] by the current [base class][baseClass].
+     * Throws [SerializationException] if serializer is not found.
+     */
+    public open fun findPolymorphicSerializer(
         decoder: CompositeDecoder,
         klassName: String
-    ): KSerializer<out T>
+    ): KSerializer<out T> = decoder.context.getPolymorphic(baseClass, klassName)
+            ?: throwSubtypeNotRegistered(klassName, baseClass)
 
-    public abstract fun findPolymorphicSerializer(
+
+    /**
+     * Lookups a polymorphic serializer by given [value] in the context of [encoder] by the current [base class][baseClass].
+     * Throws [SerializationException] if serializer is not found.
+     */
+    @Suppress("UNCHECKED_CAST")
+    public open fun findPolymorphicSerializer(
         encoder: Encoder,
         value: T
-    ): KSerializer<out T>
+    ): KSerializer<out T> =
+        encoder.context.getPolymorphic(baseClass, value) ?: throwSubtypeNotRegistered(value::class, baseClass)
 }
+
+
+internal fun throwSubtypeNotRegistered(subClassName: String, baseClass: KClass<*>): Nothing =
+    throw SerializationException("$subClassName is not registered for polymorphic serialization in the scope of $baseClass")
+
+internal fun throwSubtypeNotRegistered(subClass: KClass<*>, baseClass: KClass<*>): Nothing =
+    throwSubtypeNotRegistered(subClass.toString(), baseClass)

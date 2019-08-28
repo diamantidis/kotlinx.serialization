@@ -9,7 +9,8 @@ import kotlinx.serialization.internal.SerialClassDescImpl
 import kotlin.reflect.KClass
 
 public class SealedClassSerializer<T : Any>(
-    private val serialName: String,
+    serialName: String,
+    override val baseClass: KClass<T>,
     subclasses: Array<KClass<out T>>,
     subSerializers: Array<KSerializer<out T>>
 ) : AbstractPolymorphicSerializer<T>() {
@@ -28,13 +29,13 @@ public class SealedClassSerializer<T : Any>(
     @Suppress("UNCHECKED_CAST")
     override fun findPolymorphicSerializer(decoder: CompositeDecoder, klassName: String): KSerializer<out T> {
         return inverseMap[klassName]
-                ?: error("Serializer for sealed class $serialName encountered class $klassName which does not appear to be its subtype.")
+                ?: super.findPolymorphicSerializer(decoder, klassName)
     }
 
     @Suppress("UNCHECKED_CAST")
     override fun findPolymorphicSerializer(encoder: Encoder, value: T): KSerializer<out T> {
         return backingMap[value::class]
-                ?: error("Serializer for sealed class $serialName encountered class ${value::class} which does not appear to be its subtype.")
+                ?: super.findPolymorphicSerializer(encoder, value)
     }
 
     override val descriptor: SerialDescriptor = SealedClassDescriptor(serialName, subSerializers.map { it.descriptor })
