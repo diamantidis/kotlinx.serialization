@@ -94,7 +94,7 @@ open class SerialClassDescImpl @JvmOverloads constructor(
     }
 
     override fun toString(): String {
-        return indices.entries.joinToString(", ", "$name(", ")") { it.key + ": " + getElementDescriptor(it.value).name }
+        return (0 until elementsCount).joinToString(prefix = "$name(", postfix = ")") { getElementName(it) + ": " + getElementDescriptor(it).name }
     }
 
     private class MissingDescriptorException(index: Int, origin: SerialDescriptor) :
