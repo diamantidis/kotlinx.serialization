@@ -7,6 +7,15 @@ package kotlinx.serialization.internal
 import kotlinx.serialization.*
 import kotlin.reflect.KClass
 
+/**
+ * Base class for providing multiplatform polymorphic serialization.
+ *
+ * Should not be implemented by user. To learn how to use it for your case,
+ * see [PolymorphicSerializer] for interfaces/abstract classes and [SealedClassSerializer] for sealed classes.
+ *
+ * By default (without special support from [Encoder]), polymorphic values are serialized as list with
+ * two elements: fully-qualified class name (String) and the object itself.
+ */
 abstract class AbstractPolymorphicSerializer<T : Any> internal constructor() : KSerializer<T> {
 
     public abstract val baseClass: KClass<T>

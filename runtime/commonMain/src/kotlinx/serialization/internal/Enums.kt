@@ -34,6 +34,10 @@ public class EnumDescriptor @JvmOverloads constructor(
         return true
     }
 
+    override fun toString(): String {
+        return elementNames().joinToString(", ", "$name(", ")")
+    }
+
     override fun hashCode(): Int {
         var result = super.hashCode()
         result = 31 * result + name.hashCode()
